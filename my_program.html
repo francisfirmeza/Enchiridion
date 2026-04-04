@@ -28,7 +28,23 @@
           </li>
         </ul>
       </nav>
-
     </header>
+
+    <hr />
+    <main>
+      <form action="https://httpinbin.org/post" method="post">
+        <fieldset>
+          <legend>Workout Input</legend>
+          <p>
+            <label for="weight">Weight:</label>
+            <input
+              type="number"
+              name="weight" min="0" step="1" oninput="this.value = Math.abs(this.value)"
+              id="weight"
+            />
+          </p>
+        </fieldset>
+      </form>
+    </main>
   </body>
 </html>
