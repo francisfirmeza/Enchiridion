@@ -8,6 +8,9 @@
     <link rel="stylesheet" href="css/style.css" type="text/css" />
   </head>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="JS/app.js"></script>
+
   <body>
     <header>
       <h1>My Program</h1>
@@ -32,7 +35,7 @@
 
     <hr />
     <main>
-      <form action="https://httpbin.org/post" method="post">
+      <form id="workout-form">
         <fieldset>
           <legend>Workout Input</legend>
           <p>
