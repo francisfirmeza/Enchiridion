@@ -46,6 +46,22 @@
               id="weight"
             />
           </p>
+          <p>
+            <label for="sets">Sets:</label>
+            <input
+              type="number"
+              name="sets" min="1" step="1" oninput="this.value = Math.abs(this.value)"
+              id="sets"
+            />
+          </p>
+          <p>
+            <label for="reps">Reps:</label>
+            <input
+              type="number"
+              name="reps" min="0" step="1" oninput="this.value = Math.abs(this.value)"
+              id="reps"
+            />
+          </p>
           <button type="submit">SUBMIT</button>
         </fieldset>
       </form>

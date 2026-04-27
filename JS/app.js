@@ -8,10 +8,12 @@ document.addEventListener('DOMContentLoaded', () =>
     {
         e.preventDefault();
         const weight = document.getElementById('weight').value;
+        const sets = document.getElementById('sets').value;
+        const reps = document.getElementById('reps').value;
 
         const { data, error } = await client
-            .from('Fun')
-            .insert({ Weight: weight });
+            .from('tblLifts')
+            .insert({ Weight: weight, Sets: sets, Reps: reps });
 
         if(error)
         {
