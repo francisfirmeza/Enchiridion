@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -7,9 +7,6 @@
     <link rel="icon" href="img/favicon.ico" type="image/x-icon" />
     <link rel="stylesheet" href="css/style.css" type="text/css" />
   </head>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="JS/app.js"></script>
 
   <body>
     <header>
@@ -39,10 +36,19 @@
         <fieldset>
           <legend>Workout Input</legend>
           <p>
+            <label for="exercise">Exercise:</label>
+            <select id="exercise" name="exercise">
+              <option value="">Select an exercise</option>
+            </select>
+          </p>
+          <p>
             <label for="weight">Weight:</label>
             <input
               type="number"
-              name="weight" min="0" step="1" oninput="this.value = Math.abs(this.value)"
+              name="weight"
+              min="0"
+              step="1"
+              oninput="this.value = Math.abs(this.value)"
               id="weight"
             />
           </p>
@@ -50,7 +56,10 @@
             <label for="sets">Sets:</label>
             <input
               type="number"
-              name="sets" min="1" step="1" oninput="this.value = Math.abs(this.value)"
+              name="sets"
+              min="1"
+              step="1"
+              oninput="this.value = Math.abs(this.value)"
               id="sets"
             />
           </p>
@@ -58,7 +67,10 @@
             <label for="reps">Reps:</label>
             <input
               type="number"
-              name="reps" min="0" step="1" oninput="this.value = Math.abs(this.value)"
+              name="reps"
+              min="0"
+              step="1"
+              oninput="this.value = Math.abs(this.value)"
               id="reps"
             />
           </p>
@@ -66,5 +78,8 @@
         </fieldset>
       </form>
     </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="JS/app.js"></script>
   </body>
 </html>
