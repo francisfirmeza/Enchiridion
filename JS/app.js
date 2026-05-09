@@ -26,11 +26,51 @@ async function loadExercises() {
   });
 }
 
+async function loadWorkoutLog() {
+  const {data, error} = await client
+    .from("tblLifts")
+    .select(`
+      lift_id,
+      tblExercises (exercise_name),
+      Weight,
+      Sets,
+      Reps,
+      Date
+    `)
+    .order("Date", { ascending: false });
+
+    const tbody = document.getElementById('workout-log-body');
+
+    if (error) {
+      console.error("Error loading workouts:", error);
+      tbody.innerHTML = "<tr><td colspan='5'>Error loading workouts</td></tr>";
+      return;
+    }
+
+    tbody.innerHTML = data.map(row => `
+      <tr>
+        <td>${row.tblExercises.exercise_name}</td>
+        <td>${row.Weight}</td>
+        <td>${row.Sets}</td>
+        <td>${row.Reps}</td>
+        <td>${new Date(row.Date).toLocaleDateString()}</td>
+      </tr>
+    `).join('');
+}
+
 // Form submission to tblLifts
 document.addEventListener("DOMContentLoaded", () => {
+  if (document.getElementById("exercise"))
+  {
     loadExercises();
+  }
 
-    document
+  if (document.getElementById("workout-log-body"))
+  {
+    loadWorkoutLog();
+  }
+
+  document
     .getElementById("workout-form")
     .addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -39,6 +79,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const weight = document.getElementById("weight").value;
       const sets = document.getElementById("sets").value;
       const reps = document.getElementById("reps").value;
+      const date = document.getElementById("date").value;
 
       if (!exercise) {
         alert("Please select an exercise");
@@ -47,7 +88,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const { data, error } = await client
         .from("tblLifts")
-        .insert({ Exercise: exercise, Weight: weight, Sets: sets, Reps: reps });
+        .insert({ Exercise: exercise, Weight: weight, Sets: sets, Reps: reps, Date: date });
 
       if (error) {
         console.error("Error:", error.message);
