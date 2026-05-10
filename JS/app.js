@@ -26,47 +26,71 @@ async function loadExercises() {
   });
 }
 
+// Display workout log from tblLifts, joining with tblExercises for exercise names
 async function loadWorkoutLog() {
-  const {data, error} = await client
+  const { data, error } = await client
     .from("tblLifts")
-    .select(`
+    .select(
+      `
       lift_id,
       tblExercises (exercise_name),
       Weight,
       Sets,
       Reps,
       Date
-    `)
+    `,
+    )
     .order("Date", { ascending: false });
 
-    const tbody = document.getElementById('workout-log-body');
+  const tbody = document.getElementById("workout-log-body");
 
-    if (error) {
-      console.error("Error loading workouts:", error);
-      tbody.innerHTML = "<tr><td colspan='5'>Error loading workouts</td></tr>";
-      return;
-    }
+  if (error) {
+    console.error("Error loading workouts:", error);
+    tbody.innerHTML = "<tr><td colspan='5'>Error loading workouts</td></tr>";
+    return;
+  }
 
-    tbody.innerHTML = data.map(row => `
+  tbody.innerHTML = data
+    .map(
+      (row) => `
       <tr>
         <td>${row.tblExercises.exercise_name}</td>
         <td>${row.Weight}</td>
         <td>${row.Sets}</td>
         <td>${row.Reps}</td>
         <td>${new Date(row.Date).toLocaleDateString()}</td>
-      </tr>
-    `).join('');
+        <td><button onclick="deleteWorkoutLog('${row.lift_id}')">X</button></td>
+       </tr>
+    `,
+    )
+    .join("");
+}
+
+async function deleteWorkoutLog(lift_id) {
+  const { error } = await client
+    .from("tblLifts")
+    .delete()
+    .eq("lift_id", lift_id);
+
+  console.log("lift_id being deleted:", liftId);
+  console.log("delete response:", data);
+  console.log("delete error:", error);
+
+  if (error) {
+    console.error("Error deleting workout:", error);
+    return;
+  }
+
+  loadWorkoutLog(); // Refresh the workout log after deletion
 }
 
 // Form submission to tblLifts
 document.addEventListener("DOMContentLoaded", () => {
-  if (document.getElementById("exercise"))
-  {
+  if (document.getElementById("exercise")) {
     loadExercises();
   }
 
-  if (document.getElementById("workout-log-body"))
-  {
+  if (document.getElementById("workout-log-body")) {
     loadWorkoutLog();
   }
 
@@ -86,9 +110,13 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      const { data, error } = await client
-        .from("tblLifts")
-        .insert({ Exercise: exercise, Weight: weight, Sets: sets, Reps: reps, Date: date });
+      const { data, error } = await client.from("tblLifts").insert({
+        Exercise: exercise,
+        Weight: weight,
+        Sets: sets,
+        Reps: reps,
+        Date: date,
+      });
 
       if (error) {
         console.error("Error:", error.message);
