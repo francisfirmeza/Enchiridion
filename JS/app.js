@@ -2,6 +2,33 @@ const supabaseUrl = "https://dycoodprngjtzculnzwo.supabase.co";
 const supabaseKey = "sb_publishable_X6dRRdO5fzd3rnz4oRS8Tg_eQwmEy5J";
 const client = window.supabase.createClient(supabaseUrl, supabaseKey);
 
+async function loadPrograms() {
+  const { data, error } = await client
+    .from("tblPrograms")
+    .select("program_id, program_type, program_name, program_description")
+    .order("program_name", { ascending: true });
+
+  const list = document.getElementById("programs-list");
+
+  if (error) {
+    console.error("Error loading programs:", error);
+    list.innerHTML = "<li>Error loading programs</li>";
+    return;
+  }
+
+  list.innerHTML = data
+    .map(
+      (program) => `
+    <li>
+      <h2>${program.program_name}</h2>
+      <p><strong>Type:</strong> ${program.program_type}</p>
+      <p>${program.program_description}</p>
+    </li>
+  `,
+    )
+    .join("");
+}
+
 // Fill exercise dropdown list from Supabase tblExercises
 async function loadExercises() {
   const { data, error } = await client
@@ -33,7 +60,7 @@ async function loadWorkoutLog() {
     .select(
       `
       lift_id,
-      tblExercises (exercise_name),
+      tblExercises!Exercise (exercise_name),
       Weight,
       Sets,
       Reps,
@@ -59,7 +86,7 @@ async function loadWorkoutLog() {
         <td>${row.Sets}</td>
         <td>${row.Reps}</td>
         <td>${new Date(row.Date).toLocaleDateString()}</td>
-        <td><button onclick="deleteWorkoutLog('${row.lift_id}')">X</button></td>
+        <td><button onclick="deleteWorkoutLog(${row.lift_id})">X</button></td>
        </tr>
     `,
     )
@@ -72,8 +99,7 @@ async function deleteWorkoutLog(lift_id) {
     .delete()
     .eq("lift_id", lift_id);
 
-  console.log("lift_id being deleted:", liftId);
-  console.log("delete response:", data);
+  console.log("lift_id being deleted:", lift_id);
   console.log("delete error:", error);
 
   if (error) {
@@ -92,6 +118,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (document.getElementById("workout-log-body")) {
     loadWorkoutLog();
+  }
+
+  // Add this inside your DOMContentLoaded block:
+  if (document.getElementById("programs-list")) {
+    loadPrograms();
   }
 
   document
