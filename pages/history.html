@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="author" content="Francis Firmeza" />
+    <title>History</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../css/style.css" />
+  </head>
+  <body>
+    <nav class="sidebar">
+      <div class="sidebar-logo">ENCHIRIDION</div>
+      <ul class="nav-links">
+        <li><a href="dashboard.html">⬛ Dashboard</a></li>
+        <li><a href="programs.html">📋 Programs</a></li>
+        <li><a href="log.html">✏️ Log Workout</a></li>
+        <li><a href="history.html" class="active">📈 History</a></li>
+      </ul>
+      <button class="btn-logout" id="logout-btn">Sign Out</button>
+    </nav>
+
+    <main class="main-content">
+      <header class="page-header">
+        <div>
+          <h2 class="page-title">Training History</h2>
+          <p class="page-sub">All your logged sessions and progress</p>
+        </div>
+      </header>
+
+      <!-- Filter Bar -->
+      <div class="filter-bar card">
+        <div class="form-group">
+          <label>Filter by Program</label>
+          <select id="history-program-filter">
+            <option value="">All Programs</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Filter by Exercise</label>
+          <input
+            type="text"
+            id="history-exercise-filter"
+            placeholder="e.g. Squat"
+          />
+        </div>
+        <button class="btn-secondary" id="apply-filter-btn">Filter</button>
+      </div>
+
+      <!-- Sessions List -->
+      <div id="sessions-list">
+        <p class="muted">Loading sessions...</p>
+      </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/supabase.js"></script>
+    <script src="../js/history.js"></script>
+  </body>
+</html>

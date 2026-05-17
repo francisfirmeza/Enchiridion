@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="author" content="Francis Firmeza" />
+    <title>Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../css/style.css" />
+  </head>
+  <body>
+    <!-- Sidebar Nav -->
+    <nav class="sidebar">
+      <div class="sidebar-logo">ENCHIRIDION</div>
+      <ul class="nav-links">
+        <li><a href="dashboard.html" class="active">⬛ Dashboard</a></li>
+        <li><a href="programs.html">📋 Programs</a></li>
+        <li><a href="log.html">✏️ Log Workout</a></li>
+        <li><a href="history.html">📈 History</a></li>
+      </ul>
+      <button class="btn-logout" id="logout-btn">Sign Out</button>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="page-header">
+        <div>
+          <h2 class="page-title">Dashboard</h2>
+          <p class="page-sub" id="today-date"></p>
+        </div>
+      </header>
+
+      <!-- Active Program Banner -->
+      <section class="card active-program-card" id="active-program-section">
+        <p class="card-label">ACTIVE PROGRAM</p>
+        <h3 id="active-program-name">No program selected</h3>
+        <p id="active-program-desc">Go to Programs to create or select one.</p>
+        <a href="programs.html" class="btn-secondary">Manage Programs →</a>
+      </section>
+
+      <!-- Today's Workout -->
+      <section class="card" id="todays-workout-section">
+        <p class="card-label">TODAY'S SESSION</p>
+        <div id="todays-workout-content">
+          <p class="muted">Select a program to see today's workout.</p>
+        </div>
+      </section>
+
+      <!-- Recent PRs -->
+      <section class="card">
+        <p class="card-label">RECENT PERSONAL RECORDS</p>
+        <div id="recent-prs">
+          <p class="muted">Log some workouts to see your PRs.</p>
+        </div>
+      </section>
+
+      <!-- Quick Stats -->
+      <section class="stats-row">
+        <div class="stat-card">
+          <span class="stat-num" id="stat-sessions">0</span>
+          <span class="stat-label">Sessions Logged</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-num" id="stat-exercises">0</span>
+          <span class="stat-label">Exercises Tracked</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-num" id="stat-volume">0</span>
+          <span class="stat-label">Total Volume (lbs)</span>
+        </div>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/supabase.js"></script>
+    <script src="../js/dashboard.js"></script>
+  </body>
+</html>

@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="author" content="Francis Firmeza" />
+    <title>Programs</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../css/style.css" />
+  </head>
+  <body>
+    <nav class="sidebar">
+      <div class="sidebar-logo">ENCHIRIDION</div>
+      <ul class="nav-links">
+        <li><a href="dashboard.html">⬛ Dashboard</a></li>
+        <li><a href="programs.html" class="active">📋 Programs</a></li>
+        <li><a href="log.html">✏️ Log Workout</a></li>
+        <li><a href="history.html">📈 History</a></li>
+      </ul>
+      <button class="btn-logout" id="logout-btn">Sign Out</button>
+    </nav>
+
+    <main class="main-content">
+      <header class="page-header">
+        <div>
+          <h2 class="page-title">Programs</h2>
+          <p class="page-sub">Create and manage your training programs</p>
+        </div>
+        <button class="btn-primary" id="new-program-btn">+ New Program</button>
+      </header>
+
+      <!-- Create Program Modal -->
+      <div class="modal-overlay hidden" id="program-modal">
+        <div class="modal">
+          <h3 class="modal-title">Create Program</h3>
+          <div class="form-group">
+            <label>Program Name</label>
+            <input
+              type="text"
+              id="prog-name"
+              placeholder="e.g. Russian Squat Program"
+            />
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <textarea
+              id="prog-desc"
+              placeholder="Brief description..."
+              rows="3"
+            ></textarea>
+          </div>
+          <div class="form-group">
+            <label>Progression Scheme</label>
+            <select id="prog-scheme">
+              <option value="linear">Linear Progression</option>
+              <option value="percentage">Percentage-Based</option>
+              <option value="rpe">RPE-Based</option>
+              <option value="undulating">Undulating Periodization</option>
+              <option value="custom">Custom</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Number of Days per Week</label>
+            <input type="number" id="prog-days" min="1" max="7" value="3" />
+          </div>
+          <div class="modal-actions">
+            <button class="btn-secondary" id="cancel-program-btn">
+              Cancel
+            </button>
+            <button class="btn-primary" id="save-program-btn">
+              Create Program
+            </button>
+          </div>
+          <p class="auth-error" id="prog-error"></p>
+        </div>
+      </div>
+
+      <!-- Programs List -->
+      <div id="programs-list" class="programs-grid">
+        <p class="muted">Loading programs...</p>
+      </div>
+
+      <!-- Program Detail / Days View -->
+      <div id="program-detail" class="hidden">
+        <div class="detail-header">
+          <button class="btn-back" id="back-to-programs">← Back</button>
+          <h3 id="detail-program-name"></h3>
+          <span class="scheme-badge" id="detail-scheme"></span>
+        </div>
+
+        <div class="days-grid" id="days-grid"></div>
+
+        <!-- Day Detail -->
+        <div id="day-detail" class="hidden">
+          <div class="detail-header">
+            <button class="btn-back" id="back-to-days">← Days</button>
+            <h4 id="detail-day-name"></h4>
+            <button class="btn-primary small" id="add-exercise-btn">
+              + Add Exercise
+            </button>
+          </div>
+
+          <!-- Add Exercise Form -->
+          <div class="card hidden" id="add-exercise-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Exercise Name</label>
+                <input type="text" id="ex-name" placeholder="e.g. Back Squat" />
+              </div>
+              <div class="form-group">
+                <label>Target Sets</label>
+                <input type="number" id="ex-sets" min="1" value="3" />
+              </div>
+              <div class="form-group">
+                <label>Target Reps</label>
+                <input type="text" id="ex-reps" placeholder="e.g. 5 or 3x5" />
+              </div>
+              <div class="form-group">
+                <label>Target Weight (lbs)</label>
+                <input type="number" id="ex-weight" placeholder="e.g. 225" />
+              </div>
+              <div class="form-group">
+                <label>% of 1RM (optional)</label>
+                <input
+                  type="number"
+                  id="ex-pct"
+                  min="1"
+                  max="100"
+                  placeholder="e.g. 80"
+                />
+              </div>
+              <div class="form-group">
+                <label>RPE (optional)</label>
+                <input
+                  type="number"
+                  id="ex-rpe"
+                  min="1"
+                  max="10"
+                  step="0.5"
+                  placeholder="e.g. 8"
+                />
+              </div>
+            </div>
+            <div class="modal-actions">
+              <button class="btn-secondary" id="cancel-ex-btn">Cancel</button>
+              <button class="btn-primary" id="save-exercise-btn">
+                Add Exercise
+              </button>
+            </div>
+            <p class="auth-error" id="ex-error"></p>
+          </div>
+
+          <!-- Exercises Table -->
+          <div class="card">
+            <table class="log-table" id="exercises-table">
+              <thead>
+                <tr>
+                  <th>Exercise</th>
+                  <th>Sets</th>
+                  <th>Reps</th>
+                  <th>Target Weight</th>
+                  <th>% 1RM</th>
+                  <th>RPE</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="exercises-body">
+                <tr>
+                  <td colspan="7" class="muted">No exercises yet.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/supabase.js"></script>
+    <script src="../js/programs.js"></script>
+  </body>
+</html>
