@@ -1,81 +1,90 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta name="author" content="Francis Firmeza" />
-  <title>Log Workout</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../css/style.css" />
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="author" content="Francis Firmeza" />
+    <title>Log Workout</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../css/style.css" />
+  </head>
+  <body>
+    <nav class="sidebar">
+      <div class="sidebar-logo">ENCHIRIDION</div>
+      <ul class="nav-links">
+        <li><a href="dashboard.html">⬛ Dashboard</a></li>
+        <li><a href="programs.html">📋 Programs</a></li>
+        <li><a href="log.html" class="active">✏️ Log Workout</a></li>
+        <li><a href="history.html">📈 History</a></li>
+      </ul>
+      <button class="btn-logout" id="logout-btn">Sign Out</button>
+    </nav>
 
-  <nav class="sidebar">
-    <div class="sidebar-logo">ENCHIRIDION</div>
-    <ul class="nav-links">
-      <li><a href="dashboard.html">⬛ Dashboard</a></li>
-      <li><a href="programs.html">📋 Programs</a></li>
-      <li><a href="log.html" class="active">✏️ Log Workout</a></li>
-      <li><a href="history.html">📈 History</a></li>
-    </ul>
-    <button class="btn-logout" id="logout-btn">Sign Out</button>
-  </nav>
+    <main class="main-content">
+      <header class="page-header">
+        <div>
+          <h2 class="page-title">Log Workout</h2>
+          <p class="page-sub">Record today's sets, reps, and weights</p>
+        </div>
+      </header>
 
-  <main class="main-content">
-    <header class="page-header">
-      <div>
-        <h2 class="page-title">Log Workout</h2>
-        <p class="page-sub">Record today's sets, reps, and weights</p>
+      <!-- Session Setup -->
+      <section class="card" id="session-setup">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Program</label>
+            <select id="log-program-select">
+              <option value="">-- Select Program --</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Day</label>
+            <select id="log-day-select" disabled>
+              <option value="">-- Select Day --</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Date</label>
+            <input type="date" id="log-date" />
+          </div>
+          <div class="form-group">
+            <label>Session Notes (optional)</label>
+            <input
+              type="text"
+              id="log-notes"
+              placeholder="e.g. Felt strong today"
+            />
+          </div>
+        </div>
+        <button class="btn-primary" id="load-session-btn">Load Session</button>
+      </section>
+
+      <!-- Exercise Log Area -->
+      <div id="log-area" class="hidden">
+        <div class="session-banner">
+          <span id="session-label"></span>
+          <span class="scheme-badge" id="session-scheme"></span>
+        </div>
+
+        <!-- Per-exercise logging -->
+        <div id="exercise-log-list"></div>
+
+        <button class="btn-primary wide" id="finish-session-btn">
+          ✓ Save Session
+        </button>
+        <p class="auth-error" id="log-error"></p>
+        <p class="success-msg hidden" id="log-success">
+          Session saved! Great work. 💪
+        </p>
       </div>
-    </header>
+    </main>
 
-    <!-- Session Setup -->
-    <section class="card" id="session-setup">
-      <div class="form-row">
-        <div class="form-group">
-          <label>Program</label>
-          <select id="log-program-select">
-            <option value="">-- Select Program --</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Day</label>
-          <select id="log-day-select" disabled>
-            <option value="">-- Select Day --</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Date</label>
-          <input type="date" id="log-date" />
-        </div>
-        <div class="form-group">
-          <label>Session Notes (optional)</label>
-          <input type="text" id="log-notes" placeholder="e.g. Felt strong today" />
-        </div>
-      </div>
-      <button class="btn-primary" id="load-session-btn">Load Session</button>
-    </section>
-
-    <!-- Exercise Log Area -->
-    <div id="log-area" class="hidden">
-      <div class="session-banner">
-        <span id="session-label"></span>
-        <span class="scheme-badge" id="session-scheme"></span>
-      </div>
-
-      <!-- Per-exercise logging -->
-      <div id="exercise-log-list"></div>
-
-      <button class="btn-primary wide" id="finish-session-btn">✓ Save Session</button>
-      <p class="auth-error" id="log-error"></p>
-      <p class="success-msg hidden" id="log-success">Session saved! Great work. 💪</p>
-    </div>
-
-  </main>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="../js/supabase.js"></script>
-  <script src="../js/log.js"></script>
-</body>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/supabase.js"></script>
+    <script src="../js/log.js"></script>
+  </body>
 </html>
