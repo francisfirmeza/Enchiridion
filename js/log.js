@@ -195,7 +195,7 @@ function calculateNextTarget(ex, prevLog) {
   if (scheme === "linear") {
     // Add weight if target reps were hit
     if (prevReps >= targetReps) {
-      const increment = prevWeight >= 200 ? 5 : 2.5;
+      const increment = 5;
       return `Next target: ${prevWeight + increment} lbs`;
     } else {
       return `Repeat: ${prevWeight} lbs (reps not met)`;
@@ -252,7 +252,7 @@ function updateProgressionFeedback() {
 
     if (totalReps >= targetTotal) {
       const scheme = currentProgram?.progression_scheme || "linear";
-      let increment = lastWeight >= 200 ? 5 : 2.5;
+      let increment = 5;
       let nextMsg = "";
 
       if (scheme === "linear") {
