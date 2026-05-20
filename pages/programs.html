@@ -59,6 +59,7 @@
             <label>Progression Scheme</label>
             <select id="prog-scheme">
               <option value="linear">Linear Progression</option>
+              <option value="double">Double Progression</option>
               <option value="percentage">Percentage-Based</option>
               <option value="rpe">RPE-Based</option>
               <option value="undulating">Undulating Periodization</option>
@@ -108,25 +109,26 @@
 
           <!-- Add Exercise Form -->
           <div class="card hidden" id="add-exercise-form">
+            <div class="scheme-hint hidden" id="scheme-hint"></div>
             <div class="form-row">
               <div class="form-group">
                 <label>Exercise Name</label>
                 <input type="text" id="ex-name" placeholder="e.g. Back Squat" />
               </div>
-              <div class="form-group">
+              <div class="form-group" id="fg-sets">
                 <label>Target Sets</label>
                 <input type="number" id="ex-sets" min="1" value="3" />
               </div>
-              <div class="form-group">
-                <label>Target Reps</label>
-                <input type="text" id="ex-reps" placeholder="e.g. 5 or 3x5" />
+              <div class="form-group" id="fg-reps">
+                <label id="fg-reps-label">Target Reps</label>
+                <input type="text" id="ex-reps" placeholder="e.g. 5" />
               </div>
-              <div class="form-group">
+              <div class="form-group" id="fg-weight">
                 <label>Target Weight (lbs)</label>
                 <input type="number" id="ex-weight" placeholder="e.g. 225" />
               </div>
-              <div class="form-group">
-                <label>% of 1RM (optional)</label>
+              <div class="form-group" id="fg-pct">
+                <label>% of 1RM</label>
                 <input
                   type="number"
                   id="ex-pct"
@@ -135,8 +137,8 @@
                   placeholder="e.g. 80"
                 />
               </div>
-              <div class="form-group">
-                <label>RPE (optional)</label>
+              <div class="form-group" id="fg-rpe">
+                <label>RPE</label>
                 <input
                   type="number"
                   id="ex-rpe"

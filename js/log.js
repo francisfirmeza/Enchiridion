@@ -213,7 +213,18 @@ function checkDeload(exercises) {
 }
 
 // ── Progression Calculation ─────────────────────────────────
-// Supports: linear, percentage, rpe, undulating, custom
+// Supports: linear, double, percentage, rpe, undulating, custom
+
+// Parses "8-12" into { min: 8, max: 12 }, or "5" into { min: 5, max: 5 }.
+function parseRepRange(str) {
+  if (!str) return { min: null, max: null };
+  const parts = str.split("-").map((s) => parseInt(s.trim()));
+  if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+    return { min: parts[0], max: parts[1] };
+  }
+  const n = parseInt(str);
+  return { min: n, max: n };
+}
 
 function calculateNextTarget(ex, prevLog) {
   if (!prevLog) return "First session — establish baseline";
@@ -221,20 +232,26 @@ function calculateNextTarget(ex, prevLog) {
 
   const prevWeight = prevLog.weight || 0;
   const prevReps = prevLog.reps || 0;
-  const targetReps = parseInt(ex.target_reps) || prevReps;
 
   if (scheme === "linear") {
-    // Add weight if target reps were hit
+    const targetReps = parseInt(ex.target_reps) || prevReps;
     if (prevReps >= targetReps) {
-      const increment = 5;
-      return `Next target: ${prevWeight + increment} lbs`;
-    } else {
-      return `Repeat: ${prevWeight} lbs (reps not met)`;
+      return `Next target: ${prevWeight + 5} lbs`;
     }
+    return `Repeat: ${prevWeight} lbs (reps not met)`;
+  }
+
+  if (scheme === "double") {
+    const { min, max } = parseRepRange(ex.target_reps);
+    if (!min || !max) return `Set a rep range (e.g. 8-12) to use double progression`;
+    if (prevReps >= max) {
+      return `Increase weight: ${prevWeight + 5} lbs × ${min} reps`;
+    }
+    return `Add reps: ${prevWeight} lbs × aim for ${prevReps + 1}+ (ceiling: ${max})`;
   }
 
   if (scheme === "percentage" && ex.pct_1rm) {
-    // Estimate 1RM from previous (Epley formula): 1RM = w × (1 + r/30)
+    // Epley formula: 1RM = w × (1 + r/30)
     const est1RM = prevWeight * (1 + prevReps / 30);
     const nextW = Math.round((est1RM * ex.pct_1rm) / 100 / 2.5) * 2.5;
     return `Next target: ${nextW} lbs (${ex.pct_1rm}% 1RM ≈ ${Math.round(est1RM)} lbs)`;
@@ -245,7 +262,6 @@ function calculateNextTarget(ex, prevLog) {
   }
 
   if (scheme === "undulating") {
-    // Simple wave: cycle through intensities
     return `Undulating — vary intensity from last session`;
   }
 
@@ -277,33 +293,62 @@ function updateProgressionFeedback() {
 
     if (setCount === 0) return;
 
-    const targetRepsPerSet = parseInt(ex.target_reps) || 5;
-    const targetTotal = targetRepsPerSet * ex.target_sets;
+    const scheme = currentProgram?.progression_scheme || "linear";
     const noteEl = document.getElementById(`prog-note-${idx}`);
+    let nextMsg = "";
+    let success = false;
 
-    if (totalReps >= targetTotal) {
-      const scheme = currentProgram?.progression_scheme || "linear";
-      let increment = 5;
-      let nextMsg = "";
+    if (scheme === "double") {
+      // Double progression: check each set individually against the rep range
+      const { min, max } = parseRepRange(ex.target_reps);
+      if (!min || !max) return;
 
-      if (scheme === "linear") {
-        nextMsg = `✓ All reps hit! Next session: ${lastWeight + increment} lbs`;
-      } else if (scheme === "percentage" && ex.pct_1rm) {
-        const est1RM = lastWeight * (1 + targetRepsPerSet / 30);
-        const nextW = Math.round((est1RM * ex.pct_1rm) / 100 / 2.5) * 2.5;
-        nextMsg = `✓ Good set! Est 1RM: ${Math.round(est1RM)} lbs → Next ${ex.pct_1rm}%: ${nextW} lbs`;
+      const setRepsArr = [];
+      inputs.forEach((inp) => {
+        const r = parseInt(inp.value);
+        if (!isNaN(r)) setRepsArr.push(r);
+      });
+      if (setRepsArr.length === 0) return;
+
+      const allAtCeiling = setRepsArr.every((r) => r >= max);
+      const allAboveFloor = setRepsArr.every((r) => r >= min);
+
+      if (allAtCeiling) {
+        nextMsg = `✓ All sets at ${max}+ reps — add weight next session: ${lastWeight + 5} lbs × ${min}`;
+        success = true;
+      } else if (allAboveFloor) {
+        const lowestSet = Math.min(...setRepsArr);
+        nextMsg = `✓ Floor met — ${max - lowestSet} more rep(s) on weakest set before adding weight`;
+        success = true;
       } else {
-        nextMsg = `✓ Target reps met!`;
+        const failCount = setRepsArr.filter((r) => r < min).length;
+        nextMsg = `✗ ${failCount} set(s) below ${min} reps — repeat ${lastWeight} lbs`;
+        success = false;
       }
-
-      noteEl.textContent = nextMsg;
-      noteEl.className = "progression-note success";
-      noteEl.classList.remove("hidden");
     } else {
-      noteEl.textContent = `✗ ${totalReps}/${targetTotal} reps — repeat this weight next session`;
-      noteEl.className = "progression-note fail";
-      noteEl.classList.remove("hidden");
+      const targetRepsPerSet = parseInt(ex.target_reps) || 5;
+      const targetTotal = targetRepsPerSet * ex.target_sets;
+
+      if (totalReps >= targetTotal) {
+        if (scheme === "linear") {
+          nextMsg = `✓ All reps hit! Next session: ${lastWeight + 5} lbs`;
+        } else if (scheme === "percentage" && ex.pct_1rm) {
+          const est1RM = lastWeight * (1 + targetRepsPerSet / 30);
+          const nextW = Math.round((est1RM * ex.pct_1rm) / 100 / 2.5) * 2.5;
+          nextMsg = `✓ Good set! Est 1RM: ${Math.round(est1RM)} lbs → Next ${ex.pct_1rm}%: ${nextW} lbs`;
+        } else {
+          nextMsg = `✓ Target reps met!`;
+        }
+        success = true;
+      } else {
+        nextMsg = `✗ ${totalReps}/${targetTotal} reps — repeat this weight next session`;
+        success = false;
+      }
     }
+
+    noteEl.textContent = nextMsg;
+    noteEl.className = `progression-note ${success ? "success" : "fail"}`;
+    noteEl.classList.remove("hidden");
   });
 }
 

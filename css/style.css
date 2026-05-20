@@ -711,6 +711,24 @@ html, body {
 }
 .btn-danger:hover { color: var(--accent2); }
 
+/* ── SCHEME FIELD HINTS ────────────────────── */
+.field-primary label { color: var(--accent); }
+.field-primary input,
+.field-primary select { border-color: var(--accent); }
+
+.field-secondary { opacity: 0.4; }
+
+.scheme-hint {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  background: var(--surface2);
+  border-left: 3px solid var(--accent);
+  padding: 0.65rem 0.9rem;
+  margin-bottom: 1rem;
+  border-radius: var(--radius);
+  line-height: 1.6;
+}
+
 /* ── DELOAD BANNER ─────────────────────────── */
 .deload-banner {
   display: flex;

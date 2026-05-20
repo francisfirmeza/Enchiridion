@@ -197,8 +197,49 @@ window.openDay = async (dayId, dayName) => {
   document.getElementById("days-grid").classList.add("hidden");
   document.getElementById("day-detail").classList.remove("hidden");
   document.getElementById("detail-day-name").textContent = dayName;
+  applySchemeHints(currentProgram?.progression_scheme);
   await loadExercises(dayId);
 };
+
+function applySchemeHints(scheme) {
+  const fields = ["fg-sets", "fg-reps", "fg-weight", "fg-pct", "fg-rpe"];
+  fields.forEach((id) => {
+    document.getElementById(id).classList.remove("field-primary", "field-secondary");
+  });
+
+  const hintEl = document.getElementById("scheme-hint");
+
+  const schemeConfig = {
+    linear:     { primary: ["fg-reps", "fg-weight"],  secondary: ["fg-pct", "fg-rpe"],    hint: null },
+    double:     { primary: ["fg-reps"],                secondary: ["fg-weight", "fg-pct", "fg-rpe"], hint: null, repsLabel: "Rep Range (e.g. 8-12)" },
+    percentage: { primary: ["fg-pct", "fg-reps"],     secondary: ["fg-weight", "fg-rpe"], hint: null },
+    rpe:        { primary: ["fg-rpe", "fg-reps"],     secondary: ["fg-weight", "fg-pct"], hint: null },
+    undulating: {
+      primary: ["fg-reps", "fg-weight"], secondary: ["fg-pct", "fg-rpe"],
+      hint: "Undulating periodization varies intensity session to session. Set a rep target and a starting weight — you'll adjust load by feel each session as the wave progresses. % 1RM and RPE are optional reference points.",
+    },
+    custom: {
+      primary: [], secondary: [],
+      hint: "Custom progression — fill in whichever targets apply. The app will display them during logging but won't calculate a next-session target automatically.",
+    },
+  };
+
+  const config = schemeConfig[scheme] || schemeConfig.custom;
+
+  config.primary.forEach((id) => document.getElementById(id).classList.add("field-primary"));
+  config.secondary.forEach((id) => document.getElementById(id).classList.add("field-secondary"));
+
+  document.getElementById("fg-reps-label").textContent = config.repsLabel || "Target Reps";
+  document.getElementById("ex-reps").placeholder = scheme === "double" ? "e.g. 8-12" : "e.g. 5";
+
+  if (config.hint) {
+    hintEl.textContent = config.hint;
+    hintEl.classList.remove("hidden");
+  } else {
+    hintEl.classList.add("hidden");
+    hintEl.textContent = "";
+  }
+}
 
 document.getElementById("back-to-days").addEventListener("click", () => {
   document.getElementById("day-detail").classList.add("hidden");
