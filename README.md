@@ -103,6 +103,15 @@ Generates a week-by-week training block given an exercise, a training max, and a
 
 **Wave Loading** organizes training into repeating 3-week waves. Each wave starts slightly heavier than the last, creating a "2 steps forward, 1 step back" overload pattern. Volume decreases wave-by-wave as intensity rises.
 
+**Step Loading** divides the block into 2–4 equal steps. Within each step, intensity and volume are constant — the body fully adapts to a given load before it jumps to the next level. The jump between steps is discrete (~5%), making overload clear and predictable.
+
+| Step | Intensity | Sets × Reps |
+|---|---|---|
+| Step 1 | 70% | 4×6 |
+| Step 2 | 75% | 4×5 |
+| Step 3 | 80% | 3×4 |
+| Step 4 | 85% | 3×3 |
+
 All target weights are rounded to the nearest 2.5 lbs.
 
 ---

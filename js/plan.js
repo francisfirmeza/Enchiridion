@@ -35,7 +35,9 @@ document.getElementById("generate-btn").addEventListener("click", () => {
   const plan =
     type === "wave"
       ? generateWaveLoading(trainingMax, weeks)
-      : generateLinearBlock(trainingMax, weeks);
+      : type === "step"
+        ? generateStepLoading(trainingMax, weeks)
+        : generateLinearBlock(trainingMax, weeks);
 
   renderPlan(plan, exercise, trainingMax, weeks, type);
   document.getElementById("plan-output").classList.remove("hidden");
@@ -147,6 +149,49 @@ function generateWaveLoading(trainingMax, totalWeeks) {
   return plan;
 }
 
+// ── Step Loading Periodization ───────────────────────────────
+// Divides the block into 2–4 equal steps. Within each step,
+// intensity and volume are constant — the body fully adapts to
+// a load before it jumps to the next step. The jump between
+// steps is discrete (~5%), making overload clear and predictable.
+//   Step 1: 70% · 4×6
+//   Step 2: 75% · 4×5
+//   Step 3: 80% · 3×4
+//   Step 4: 85% · 3×3
+
+function generateStepLoading(trainingMax, totalWeeks) {
+  const numSteps = totalWeeks <= 4 ? 2 : totalWeeks <= 6 ? 3 : 4;
+  const baseWeeks = Math.floor(totalWeeks / numSteps);
+  const remainder = totalWeeks - baseWeeks * numSteps;
+
+  const stepDefs = [
+    { pct: 70, sets: 4, reps: 6 },
+    { pct: 75, sets: 4, reps: 5 },
+    { pct: 80, sets: 3, reps: 4 },
+    { pct: 85, sets: 3, reps: 3 },
+  ];
+
+  const plan = [];
+
+  for (let s = 0; s < numSteps; s++) {
+    const def = stepDefs[s];
+    const stepWeeks = baseWeeks + (s === numSteps - 1 ? remainder : 0);
+
+    for (let w = 0; w < stepWeeks; w++) {
+      plan.push({
+        week: plan.length + 1,
+        phase: `Step ${s + 1}`,
+        sets: def.sets,
+        reps: def.reps,
+        pct: def.pct,
+        weight: round2_5((trainingMax * def.pct) / 100),
+      });
+    }
+  }
+
+  return plan;
+}
+
 // ── Rendering ────────────────────────────────────────────────
 
 function phaseClass(phase, pct) {
@@ -173,8 +218,9 @@ function intensityBar(pct) {
 
 function renderPlan(plan, exercise, trainingMax, weeks, type) {
   // Table label
+  const typeLabel = { linear: "LINEAR BLOCK", wave: "WAVE LOADING", step: "STEP LOADING" };
   document.getElementById("plan-table-label").textContent =
-    `${exercise.toUpperCase()} — ${weeks}-WEEK ${type === "wave" ? "WAVE LOADING" : "LINEAR BLOCK"}`;
+    `${exercise.toUpperCase()} — ${weeks}-WEEK ${typeLabel[type] || "LINEAR BLOCK"}`;
 
   // Summary stats
   const totalVolume = plan.reduce((s, w) => s + w.sets * w.reps, 0);
@@ -186,7 +232,7 @@ function renderPlan(plan, exercise, trainingMax, weeks, type) {
     { label: "Peak Intensity", value: `${peakPct}%` },
     { label: "Peak Weight", value: `${peakWeight} lbs` },
     { label: "Total Reps (excl. weight)", value: totalVolume.toLocaleString() },
-    { label: "Phases / Waves", value: phases.length },
+    { label: type === "step" ? "Steps" : type === "wave" ? "Waves" : "Phases", value: phases.length },
   ]
     .map(
       ({ label, value }) => `
@@ -216,25 +262,42 @@ function renderPlan(plan, exercise, trainingMax, weeks, type) {
     .join("");
 
   // Guidance text
-  const guidance =
-    type === "linear"
-      ? `<p><strong style="color:var(--text)">Accumulation</strong> — Build your work capacity with higher reps and moderate weight.
-         Focus on technique and consistency. Rest 2–3 minutes between sets.</p>
-         <p style="margin-top:0.75rem"><strong style="color:var(--text)">Intensification</strong> — Shift toward heavier loads and fewer reps.
-         Your body converts the volume base into strength. Rest 3–4 minutes between sets.</p>
-         <p style="margin-top:0.75rem"><strong style="color:var(--text)">Realization</strong> — Express the strength you've built.
-         Keep volume low, prioritize recovery, and hit your targets. Rest 4–5 minutes between sets.</p>
-         <p style="margin-top:0.75rem;color:var(--text-muted);font-size:0.82rem">
-         Weights are based on your stated training max of <strong>${trainingMax} lbs</strong>.
-         If a target weight feels too easy or too hard, adjust your training max and regenerate.</p>`
-      : `<p><strong style="color:var(--text)">Wave structure</strong> — Each 3-week wave ratchets up in intensity.
-         The first week of each new wave is slightly heavier than the first week of the previous wave —
-         this "2 steps forward, 1 step back" pattern allows recovery while driving long-term progress.</p>
-         <p style="margin-top:0.75rem"><strong style="color:var(--text)">Within a wave</strong> — weight increases and reps decrease
-         each week. By the final week of a wave, you should feel near your limit for those reps.</p>
-         <p style="margin-top:0.75rem;color:var(--text-muted);font-size:0.82rem">
-         Weights are based on your stated training max of <strong>${trainingMax} lbs</strong>.
-         Adjust by ±5–10 lbs per set based on daily feel — wave loading rewards auto-regulation.</p>`;
+  const guidanceMap = {
+    linear: `<p><strong style="color:var(--text)">Accumulation</strong> — Build your work capacity with higher reps and moderate weight.
+       Focus on technique and consistency. Rest 2–3 minutes between sets.</p>
+       <p style="margin-top:0.75rem"><strong style="color:var(--text)">Intensification</strong> — Shift toward heavier loads and fewer reps.
+       Your body converts the volume base into strength. Rest 3–4 minutes between sets.</p>
+       <p style="margin-top:0.75rem"><strong style="color:var(--text)">Realization</strong> — Express the strength you've built.
+       Keep volume low, prioritize recovery, and hit your targets. Rest 4–5 minutes between sets.</p>
+       <p style="margin-top:0.75rem;color:var(--text-muted);font-size:0.82rem">
+       Weights are based on your stated training max of <strong>${trainingMax} lbs</strong>.
+       If a target weight feels too easy or too hard, adjust your training max and regenerate.</p>`,
+
+    wave: `<p><strong style="color:var(--text)">Wave structure</strong> — Each 3-week wave ratchets up in intensity.
+       The first week of each new wave is slightly heavier than the first week of the previous wave —
+       this "2 steps forward, 1 step back" pattern allows recovery while driving long-term progress.</p>
+       <p style="margin-top:0.75rem"><strong style="color:var(--text)">Within a wave</strong> — weight increases and reps decrease
+       each week. By the final week of a wave, you should feel near your limit for those reps.</p>
+       <p style="margin-top:0.75rem;color:var(--text-muted);font-size:0.82rem">
+       Weights are based on your stated training max of <strong>${trainingMax} lbs</strong>.
+       Adjust by ±5–10 lbs per set based on daily feel — wave loading rewards auto-regulation.</p>`,
+
+    step: `<p><strong style="color:var(--text)">How step loading works</strong> — Unlike linear progression,
+       intensity stays constant for the entire duration of each step. You repeat the same weight week
+       after week, allowing full adaptation before the load jumps to the next level. The jump between
+       steps is discrete (~5%), making overload clear and predictable.</p>
+       <p style="margin-top:0.75rem"><strong style="color:var(--text)">Step 1</strong> — The weight should feel manageable.
+       Focus on bar speed and dialling in technique at this load.</p>
+       <p style="margin-top:0.75rem"><strong style="color:var(--text)">Step 2</strong> — Now challenging. Maintain rep quality and avoid grinding.
+       Your body is adapting to the previous step's load.</p>
+       <p style="margin-top:0.75rem"><strong style="color:var(--text)">Step 3</strong> — Heavy territory. Prioritise sleep and recovery between sessions.</p>
+       <p style="margin-top:0.75rem"><strong style="color:var(--text)">Step 4</strong> — Peak intensity. Keep sessions short and focused; volume is intentionally low.</p>
+       <p style="margin-top:0.75rem;color:var(--text-muted);font-size:0.82rem">
+       Weights are based on your stated training max of <strong>${trainingMax} lbs</strong>.
+       If a step feels too light in week 1, your training max may be understated — adjust and regenerate.</p>`,
+  };
+
+  const guidance = guidanceMap[type] || guidanceMap.linear;
 
   document.getElementById("plan-guidance").innerHTML = guidance;
 }
