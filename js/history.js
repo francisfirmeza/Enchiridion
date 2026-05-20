@@ -225,11 +225,11 @@ function renderProgressionChart(sessions, exerciseName) {
           {
             label: "Est. 1RM (Epley)",
             data: points.map((p) => p.est1RM),
-            borderColor: "#d4a843",
-            backgroundColor: "rgba(212,168,67,0.08)",
+            borderColor: "#29b6f6",
+            backgroundColor: "rgba(41,182,246,0.08)",
             tension: 0.3,
             pointRadius: 5,
-            pointBackgroundColor: "#d4a843",
+            pointBackgroundColor: "#29b6f6",
             fill: true,
           },
           {

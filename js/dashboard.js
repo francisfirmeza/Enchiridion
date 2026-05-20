@@ -132,8 +132,8 @@ function renderVolumeChart(logs) {
         {
           label: "Volume (lbs)",
           data,
-          backgroundColor: "rgba(212,168,67,0.35)",
-          borderColor: "#d4a843",
+          backgroundColor: "rgba(41,182,246,0.35)",
+          borderColor: "#29b6f6",
           borderWidth: 1,
           borderRadius: 2,
         },
