@@ -95,17 +95,19 @@ document
       return;
     }
 
-    // Get previous session data for each exercise for progression calculation
+    // Fetch last 2 sessions per exercise (set_number=1 gives one row per session)
+    // prevLog drives progression calculation; prevPrevLog enables deload detection
     for (let ex of exercises) {
-      const { data: prev } = await db
+      const { data: prevLogs } = await db
         .from("workout_logs")
         .select("*")
         .eq("user_id", currentUser.id)
         .eq("exercise_name", ex.name)
+        .eq("set_number", 1)
         .order("logged_at", { ascending: false })
-        .limit(1)
-        .single();
-      ex.prevLog = prev || null;
+        .limit(2);
+      ex.prevLog = prevLogs?.[0] || null;
+      ex.prevPrevLog = prevLogs?.[1] || null;
     }
 
     loadedExercises = exercises;
@@ -121,6 +123,7 @@ document
       currentProgram?.progression_scheme || "";
 
     renderExerciseLogCards(exercises);
+    checkDeload(exercises);
 
     document.getElementById("log-area").classList.remove("hidden");
     document.getElementById("log-success").classList.add("hidden");
@@ -179,6 +182,34 @@ function renderSetInputs(ex, idx) {
     </div>
   `,
   ).join("");
+}
+
+// ── Deload Detection ────────────────────────────────────────
+
+function checkDeload(exercises) {
+  const banner = document.getElementById("deload-banner");
+
+  const flagged = exercises.filter((ex) => {
+    if (!ex.prevLog || !ex.prevPrevLog) return false;
+    const targetReps = parseInt(ex.target_reps) || 5;
+    return ex.prevLog.reps < targetReps && ex.prevPrevLog.reps < targetReps;
+  });
+
+  if (flagged.length === 0) {
+    banner.classList.add("hidden");
+    banner.innerHTML = "";
+    return;
+  }
+
+  const names = flagged.map((ex) => `<strong>${ex.name}</strong>`).join(", ");
+  banner.innerHTML = `
+    <span class="deload-banner-icon">⚠</span>
+    <div>
+      Deload recommended — you've missed your rep target on ${names} for
+      2 consecutive sessions. Consider reducing weight by 10–15% today to recover.
+    </div>
+  `;
+  banner.classList.remove("hidden");
 }
 
 // ── Progression Calculation ─────────────────────────────────
