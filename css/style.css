@@ -711,6 +711,12 @@ html, body {
 }
 .btn-danger:hover { color: var(--accent2); }
 
+/* ── CHARTS ────────────────────────────────── */
+.chart-container {
+  position: relative;
+  height: 260px;
+}
+
 /* ── PERIODIZATION PLANNER ─────────────────── */
 .phase-badge {
   font-size: 0.68rem;

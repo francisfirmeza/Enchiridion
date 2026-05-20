@@ -2,6 +2,7 @@
 
 let currentUser = null;
 let allSessions = [];
+let progressionChartInstance = null;
 
 (async () => {
   const {
@@ -66,6 +67,12 @@ async function loadHistory(programId = "", exerciseName = "") {
 
   allSessions = filtered;
   renderSessions(filtered);
+
+  if (exerciseName && filtered.length > 1) {
+    renderProgressionChart(filtered, exerciseName);
+  } else {
+    hideProgressionChart();
+  }
 }
 
 function renderSessions(sessions) {
@@ -87,7 +94,6 @@ function renderSessions(sessions) {
       const dayName = s.program_days?.name || "";
       const logs = s.workout_logs || [];
 
-      // Group logs by exercise
       const byExercise = {};
       logs.forEach((l) => {
         if (!byExercise[l.exercise_name]) byExercise[l.exercise_name] = [];
@@ -100,50 +106,177 @@ function renderSessions(sessions) {
             .map(
               (set) =>
                 `<tr>
-          <td>Set ${set.set_number}</td>
-          <td>${set.reps ?? "—"}</td>
-          <td>${set.weight ? set.weight + " lbs" : "—"}</td>
-          <td>${set.rpe || "—"}</td>
-        </tr>`,
+            <td>Set ${set.set_number}</td>
+            <td>${set.reps ?? "—"}</td>
+            <td>${set.weight ? set.weight + " lbs" : "—"}</td>
+            <td>${set.rpe || "—"}</td>
+          </tr>`,
             )
             .join("");
 
           return `
-        <div style="margin-bottom:1rem">
-          <div style="font-weight:600;margin-bottom:0.4rem">${name}</div>
-          <table class="log-table" style="font-size:0.8rem">
-            <thead><tr><th>Set</th><th>Reps</th><th>Weight</th><th>RPE</th></tr></thead>
-            <tbody>${rows}</tbody>
-          </table>
-        </div>
-      `;
+          <div style="margin-bottom:1rem">
+            <div style="font-weight:600;margin-bottom:0.4rem">${name}</div>
+            <table class="log-table" style="font-size:0.8rem">
+              <thead><tr><th>Set</th><th>Reps</th><th>Weight</th><th>RPE</th></tr></thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
+        `;
         })
         .join("");
 
+      // Volume is weight × reps per set row (each row = one set)
       const totalVolume = logs.reduce(
         (sum, l) => sum + (l.weight || 0) * (l.reps || 1),
         0,
       );
 
       return `
-      <div class="session-card" onclick="this.querySelector('.session-detail').classList.toggle('open')">
-        <div class="session-card-header">
-          <div>
-            <strong>${progName}</strong> · <span style="color:var(--text-muted)">${dayName}</span>
-            ${s.notes ? `<span style="color:var(--text-muted);font-size:0.8rem"> · ${s.notes}</span>` : ""}
+        <div class="session-card" onclick="this.querySelector('.session-detail').classList.toggle('open')">
+          <div class="session-card-header">
+            <div>
+              <strong>${progName}</strong> · <span style="color:var(--text-muted)">${dayName}</span>
+              ${s.notes ? `<span style="color:var(--text-muted);font-size:0.8rem"> · ${s.notes}</span>` : ""}
+            </div>
+            <div style="display:flex;align-items:center;gap:1rem">
+              <span style="font-family:var(--font-mono);font-size:0.8rem;color:var(--accent)">${Math.round(totalVolume).toLocaleString()} lbs total</span>
+              <span class="session-date">${date}</span>
+            </div>
           </div>
-          <div style="display:flex;align-items:center;gap:1rem">
-            <span style="font-family:var(--font-mono);font-size:0.8rem;color:var(--accent)">${totalVolume.toLocaleString()} lbs total</span>
-            <span class="session-date">${date}</span>
+          <div class="session-detail">
+            ${detailHTML || '<p class="muted">No exercise data recorded.</p>'}
           </div>
         </div>
-        <div class="session-detail">
-          ${detailHTML || '<p class="muted">No exercise data recorded.</p>'}
-        </div>
-      </div>
-    `;
+      `;
     })
     .join("");
+}
+
+// ── Exercise Progression Chart ───────────────────────────────
+// For each session, finds the best estimated 1RM for the filtered
+// exercise using the Epley formula: w × (1 + r/30).
+
+function renderProgressionChart(sessions, exerciseName) {
+  const points = [];
+
+  // Sessions arrive newest-first; reverse so chart reads left → right
+  [...sessions].reverse().forEach((s) => {
+    const relevantLogs = (s.workout_logs || []).filter((l) =>
+      l.exercise_name?.toLowerCase().includes(exerciseName.toLowerCase()),
+    );
+    if (relevantLogs.length === 0) return;
+
+    let bestEst1RM = 0;
+    let bestWeight = 0;
+    relevantLogs.forEach((l) => {
+      if (!l.weight || !l.reps) return;
+      const est1RM = l.weight * (1 + l.reps / 30);
+      if (est1RM > bestEst1RM) {
+        bestEst1RM = est1RM;
+        bestWeight = l.weight;
+      }
+    });
+
+    if (bestEst1RM > 0) {
+      points.push({
+        date: s.logged_at,
+        est1RM: Math.round(bestEst1RM * 10) / 10,
+        maxWeight: bestWeight,
+      });
+    }
+  });
+
+  if (points.length < 2) {
+    hideProgressionChart();
+    return;
+  }
+
+  const chartSection = document.getElementById("progression-chart-section");
+  chartSection.classList.remove("hidden");
+  document.getElementById("progression-chart-label").textContent =
+    `${exerciseName.toUpperCase()} — PROGRESSION`;
+
+  const labels = points.map((p) =>
+    new Date(p.date).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    }),
+  );
+
+  if (progressionChartInstance) progressionChartInstance.destroy();
+
+  progressionChartInstance = new Chart(
+    document.getElementById("progression-chart"),
+    {
+      type: "line",
+      data: {
+        labels,
+        datasets: [
+          {
+            label: "Est. 1RM (Epley)",
+            data: points.map((p) => p.est1RM),
+            borderColor: "#d4a843",
+            backgroundColor: "rgba(212,168,67,0.08)",
+            tension: 0.3,
+            pointRadius: 5,
+            pointBackgroundColor: "#d4a843",
+            fill: true,
+          },
+          {
+            label: "Top Weight",
+            data: points.map((p) => p.maxWeight),
+            borderColor: "#27ae60",
+            backgroundColor: "transparent",
+            tension: 0.3,
+            pointRadius: 4,
+            pointBackgroundColor: "#27ae60",
+            borderDash: [5, 4],
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        interaction: { mode: "index", intersect: false },
+        plugins: {
+          legend: {
+            labels: {
+              color: "#7a7570",
+              font: { family: "DM Mono", size: 11 },
+              boxWidth: 12,
+            },
+          },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => ` ${ctx.dataset.label}: ${ctx.parsed.y} lbs`,
+            },
+          },
+        },
+        scales: {
+          x: {
+            ticks: { color: "#7a7570", font: { family: "DM Mono", size: 11 } },
+            grid: { color: "#2e2e2e" },
+          },
+          y: {
+            ticks: {
+              color: "#7a7570",
+              font: { family: "DM Mono", size: 11 },
+              callback: (v) => v + " lbs",
+            },
+            grid: { color: "#2e2e2e" },
+          },
+        },
+      },
+    },
+  );
+}
+
+function hideProgressionChart() {
+  document.getElementById("progression-chart-section").classList.add("hidden");
+  if (progressionChartInstance) {
+    progressionChartInstance.destroy();
+    progressionChartInstance = null;
+  }
 }
 
 document

@@ -52,6 +52,17 @@
         <button class="btn-secondary" id="apply-filter-btn">Filter</button>
       </div>
 
+      <!-- Exercise Progression Chart (shown when filtering by exercise) -->
+      <section class="card hidden" id="progression-chart-section">
+        <p class="card-label" id="progression-chart-label">PROGRESSION</p>
+        <div class="chart-container">
+          <canvas id="progression-chart"></canvas>
+        </div>
+        <p style="font-size:0.75rem;color:var(--text-muted);margin-top:0.75rem">
+          Est. 1RM calculated via Epley formula: weight × (1 + reps ÷ 30)
+        </p>
+      </section>
+
       <!-- Sessions List -->
       <div id="sessions-list">
         <p class="muted">Loading sessions...</p>
@@ -59,6 +70,7 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
     <script src="../js/supabase.js"></script>
     <script src="../js/history.js"></script>
   </body>

@@ -74,9 +74,18 @@
           <span class="stat-label">Total Volume (lbs)</span>
         </div>
       </section>
+
+      <!-- Weekly Volume Chart -->
+      <section class="card" id="volume-chart-section" style="display:none">
+        <p class="card-label">WEEKLY VOLUME — LAST 8 WEEKS</p>
+        <div class="chart-container">
+          <canvas id="volume-chart"></canvas>
+        </div>
+      </section>
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
     <script src="../js/supabase.js"></script>
     <script src="../js/dashboard.js"></script>
   </body>
