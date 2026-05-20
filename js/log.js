@@ -262,7 +262,16 @@ function calculateNextTarget(ex, prevLog) {
   }
 
   if (scheme === "undulating") {
-    return `Undulating — vary intensity from last session`;
+    // Rotate: strength (≤5 reps) → hypertrophy (6-10) → volume (>10) → strength
+    const est1RM = prevWeight * (1 + prevReps / 30);
+    const r2_5 = (v) => Math.round(v / 2.5) * 2.5;
+    if (prevReps <= 5) {
+      return `Hypertrophy day: ${r2_5(est1RM * 0.75)} lbs × 8 reps`;
+    } else if (prevReps <= 10) {
+      return `Volume day: ${r2_5(est1RM * 0.65)} lbs × 12 reps`;
+    } else {
+      return `Strength day: ${r2_5(est1RM * 0.85)} lbs × 4 reps`;
+    }
   }
 
   return `Previous: ${prevWeight} lbs × ${prevReps}`;
@@ -325,6 +334,19 @@ function updateProgressionFeedback() {
         nextMsg = `✗ ${failCount} set(s) below ${min} reps — repeat ${lastWeight} lbs`;
         success = false;
       }
+    } else if (scheme === "undulating") {
+      if (lastWeight === 0 || setCount === 0) return;
+      const avgReps = totalReps / setCount;
+      const est1RM = lastWeight * (1 + avgReps / 30);
+      const r2_5 = (v) => Math.round(v / 2.5) * 2.5;
+      if (avgReps <= 5) {
+        nextMsg = `Next: Hypertrophy — ${r2_5(est1RM * 0.75)} lbs × 8 reps`;
+      } else if (avgReps <= 10) {
+        nextMsg = `Next: Volume — ${r2_5(est1RM * 0.65)} lbs × 12 reps`;
+      } else {
+        nextMsg = `Next: Strength — ${r2_5(est1RM * 0.85)} lbs × 4 reps`;
+      }
+      success = true;
     } else {
       const targetRepsPerSet = parseInt(ex.target_reps) || 5;
       const targetTotal = targetRepsPerSet * ex.target_sets;
