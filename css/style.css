@@ -711,6 +711,47 @@ html, body {
 }
 .btn-danger:hover { color: var(--accent2); }
 
+/* ── PERIODIZATION PLANNER ─────────────────── */
+.phase-badge {
+  font-size: 0.68rem;
+  font-family: var(--font-mono);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 0.2rem 0.6rem;
+  border-radius: 2px;
+  white-space: nowrap;
+}
+
+.phase-acc  { background: rgba(39,174,96,0.15);  color: var(--accent3); border: 1px solid var(--accent3); }
+.phase-int  { background: rgba(212,168,67,0.15); color: var(--accent);  border: 1px solid var(--accent);  }
+.phase-real { background: rgba(192,57,43,0.15);  color: var(--accent2); border: 1px solid var(--accent2); }
+
+.intensity-bar {
+  height: 4px;
+  background: var(--surface2);
+  border-radius: 2px;
+  overflow: hidden;
+  width: 80px;
+  flex-shrink: 0;
+}
+
+.intensity-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.plan-summary-row {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.plan-stat {
+  display: flex;
+  flex-direction: column;
+}
+
 /* ── SCROLLBAR ─────────────────────────────── */
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: var(--bg); }

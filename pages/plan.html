@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="author" content="Francis Firmeza" />
+    <title>Periodization Planner</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../css/style.css" />
+  </head>
+  <body>
+    <nav class="sidebar">
+      <div class="sidebar-logo">ENCHIRIDION</div>
+      <ul class="nav-links">
+        <li><a href="dashboard.html">Dashboard</a></li>
+        <li><a href="programs.html">Programs</a></li>
+        <li><a href="log.html">Log Workout</a></li>
+        <li><a href="history.html">History</a></li>
+        <li><a href="plan.html" class="active">Planner</a></li>
+      </ul>
+      <button class="btn-logout" id="logout-btn">Sign Out</button>
+    </nav>
+
+    <main class="main-content">
+      <header class="page-header">
+        <div>
+          <h2 class="page-title">Periodization Planner</h2>
+          <p class="page-sub">Generate a structured training block for any lift</p>
+        </div>
+      </header>
+
+      <!-- Config Form -->
+      <section class="card">
+        <p class="card-label">Plan Configuration</p>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Exercise / Lift</label>
+            <input type="text" id="plan-exercise" placeholder="e.g. Back Squat" />
+          </div>
+          <div class="form-group">
+            <label>Training Max (lbs)</label>
+            <input type="number" id="plan-1rm" placeholder="e.g. 225" min="1" step="2.5" />
+          </div>
+          <div class="form-group">
+            <label>Block Length</label>
+            <select id="plan-weeks">
+              <option value="4">4 weeks</option>
+              <option value="6">6 weeks</option>
+              <option value="8" selected>8 weeks</option>
+              <option value="10">10 weeks</option>
+              <option value="12">12 weeks</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Periodization Type</label>
+            <select id="plan-type">
+              <option value="linear">Linear Block</option>
+              <option value="wave">Wave Loading</option>
+            </select>
+          </div>
+        </div>
+        <p id="plan-error" class="auth-error"></p>
+        <button class="btn-primary" id="generate-btn">Generate Plan</button>
+      </section>
+
+      <!-- Plan Output -->
+      <div id="plan-output" class="hidden">
+
+        <!-- Summary Stats -->
+        <section class="card">
+          <p class="card-label">Block Summary</p>
+          <div class="plan-summary-row" id="plan-summary"></div>
+        </section>
+
+        <!-- Week Table -->
+        <section class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem">
+            <p class="card-label" style="margin:0" id="plan-table-label"></p>
+            <button class="btn-secondary" onclick="window.print()" style="font-size:0.78rem;padding:0.4rem 0.9rem">Print / Save PDF</button>
+          </div>
+          <div style="overflow-x:auto">
+            <table class="log-table" id="plan-table">
+              <thead>
+                <tr>
+                  <th>Week</th>
+                  <th>Phase</th>
+                  <th>Sets × Reps</th>
+                  <th>% 1RM</th>
+                  <th>Target Weight</th>
+                  <th>Volume</th>
+                  <th>Intensity</th>
+                </tr>
+              </thead>
+              <tbody id="plan-tbody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Guidance -->
+        <section class="card">
+          <p class="card-label">How to Use This Plan</p>
+          <div id="plan-guidance" style="font-size:0.88rem;color:var(--text-muted);line-height:1.8"></div>
+        </section>
+      </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/supabase.js"></script>
+    <script src="../js/plan.js"></script>
+  </body>
+</html>
