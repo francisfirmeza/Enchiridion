@@ -1,6 +1,6 @@
 # Enchiridion
 
-A focused strength training tracker. Log workouts, track progress, plan periodized training blocks, and monitor bodyweight — no app install required.
+A focused strength-training tracker. Log workouts, track progress, plan periodized training blocks, and monitor bodyweight — no app install required.
 
 Built with vanilla HTML/CSS/JavaScript and [Supabase](https://supabase.com) as the backend.
 
