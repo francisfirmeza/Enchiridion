@@ -46,7 +46,7 @@ async function loadHistory(programId = "", exerciseName = "") {
       id, logged_at, notes,
       programs ( name ),
       program_days ( name ),
-      workout_logs ( exercise_name, set_number, reps, weight, rpe )
+      workout_logs ( id, exercise_name, set_number, reps, weight, rpe )
     `,
     )
     .eq("user_id", currentUser.id)
@@ -105,11 +105,11 @@ function renderSessions(sessions) {
           const rows = sets
             .map(
               (set) =>
-                `<tr>
+                `<tr data-log-id="${set.id}">
             <td>Set ${set.set_number}</td>
-            <td>${set.reps ?? "—"}</td>
-            <td>${set.weight ? set.weight + " lbs" : "—"}</td>
-            <td>${set.rpe || "—"}</td>
+            <td data-field="reps">${set.reps ?? "—"}</td>
+            <td data-field="weight">${set.weight != null ? set.weight + " lbs" : "—"}</td>
+            <td data-field="rpe">${set.rpe ?? "—"}</td>
           </tr>`,
             )
             .join("");
@@ -126,26 +126,35 @@ function renderSessions(sessions) {
         })
         .join("");
 
-      // Volume is weight × reps per set row (each row = one set)
       const totalVolume = logs.reduce(
         (sum, l) => sum + (l.weight || 0) * (l.reps || 1),
         0,
       );
 
+      const escapedNotes = (s.notes || "").replace(/"/g, "&quot;");
+
       return `
-        <div class="session-card" onclick="this.querySelector('.session-detail').classList.toggle('open')">
+        <div class="session-card" data-session-id="${s.id}" onclick="this.querySelector('.session-detail').classList.toggle('open')">
           <div class="session-card-header">
             <div>
               <strong>${progName}</strong> · <span style="color:var(--text-muted)">${dayName}</span>
-              ${s.notes ? `<span style="color:var(--text-muted);font-size:0.8rem"> · ${s.notes}</span>` : ""}
+              <span class="session-notes-display" style="color:var(--text-muted);font-size:0.8rem">${s.notes ? " · " + s.notes : ""}</span>
             </div>
-            <div style="display:flex;align-items:center;gap:1rem">
+            <div style="display:flex;align-items:center;gap:0.75rem">
               <span style="font-family:var(--font-mono);font-size:0.8rem;color:var(--accent)">${Math.round(totalVolume).toLocaleString()} lbs total</span>
               <span class="session-date">${date}</span>
+              <button class="btn-secondary small edit-btn" onclick="enterEditMode('${s.id}', event)">Edit</button>
+              <button class="btn-primary small save-btn hidden" onclick="saveEdits('${s.id}', event)">Save</button>
+              <button class="btn-secondary small cancel-btn hidden" onclick="cancelEdits('${s.id}', event)">Cancel</button>
             </div>
           </div>
           <div class="session-detail">
             ${detailHTML || '<p class="muted">No exercise data recorded.</p>'}
+            <div class="edit-notes-row hidden" style="margin-top:0.75rem">
+              <label style="font-size:0.75rem;color:var(--text-muted);display:block;margin-bottom:0.3rem">Session Notes</label>
+              <input type="text" class="edit-notes-input" value="${escapedNotes}"
+                style="width:100%;padding:0.4rem 0.6rem;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:0.85rem;font-family:var(--font-sans)">
+            </div>
           </div>
         </div>
       `;
@@ -288,3 +297,97 @@ document
       .value.trim();
     await loadHistory(programId, exerciseName);
   });
+
+// ── Inline Edit ──────────────────────────────────────────────
+
+function enterEditMode(sessionId, evt) {
+  evt.stopPropagation();
+  const card = document.querySelector(`[data-session-id="${sessionId}"]`);
+
+  card.querySelector(".session-detail").classList.add("open");
+
+  card.querySelectorAll("tr[data-log-id]").forEach((row) => {
+    ["reps", "weight", "rpe"].forEach((field) => {
+      const cell = row.querySelector(`[data-field="${field}"]`);
+      const text = cell.textContent.trim();
+      const raw = field === "weight" ? text.replace(" lbs", "") : text;
+      const val = raw === "—" ? "" : raw;
+      const attrs =
+        field === "weight"
+          ? 'step="2.5"'
+          : field === "rpe"
+            ? 'step="0.5" max="10"'
+            : "";
+      cell.innerHTML = `<input type="number" min="0" ${attrs} value="${val}" class="edit-log-input">`;
+    });
+  });
+
+  card.querySelector(".edit-notes-row").classList.remove("hidden");
+  card.querySelector(".edit-btn").classList.add("hidden");
+  card.querySelector(".save-btn").classList.remove("hidden");
+  card.querySelector(".cancel-btn").classList.remove("hidden");
+}
+
+async function saveEdits(sessionId, evt) {
+  evt.stopPropagation();
+  const card = document.querySelector(`[data-session-id="${sessionId}"]`);
+  const saveBtn = card.querySelector(".save-btn");
+  saveBtn.textContent = "Saving…";
+  saveBtn.disabled = true;
+
+  const updates = [];
+  card.querySelectorAll("tr[data-log-id]").forEach((row) => {
+    const repsVal = row.querySelector('[data-field="reps"] input')?.value;
+    const weightVal = row.querySelector('[data-field="weight"] input')?.value;
+    const rpeVal = row.querySelector('[data-field="rpe"] input')?.value;
+    updates.push({
+      id: row.dataset.logId,
+      reps: repsVal !== "" ? parseInt(repsVal) : null,
+      weight: weightVal !== "" ? parseFloat(weightVal) : null,
+      rpe: rpeVal !== "" ? parseFloat(rpeVal) : null,
+    });
+  });
+
+  const notes = card.querySelector(".edit-notes-input")?.value.trim() ?? null;
+
+  let hasError = false;
+
+  for (const u of updates) {
+    const { error } = await db
+      .from("workout_logs")
+      .update({ reps: u.reps, weight: u.weight, rpe: u.rpe })
+      .eq("id", u.id)
+      .eq("user_id", currentUser.id);
+    if (error) {
+      hasError = true;
+      break;
+    }
+  }
+
+  if (!hasError) {
+    const { error } = await db
+      .from("workout_sessions")
+      .update({ notes: notes || null })
+      .eq("id", sessionId)
+      .eq("user_id", currentUser.id);
+    if (error) hasError = true;
+  }
+
+  if (hasError) {
+    saveBtn.textContent = "Save";
+    saveBtn.disabled = false;
+    alert("Error saving changes — please try again.");
+    return;
+  }
+
+  const programId = document.getElementById("history-program-filter").value;
+  const exerciseName = document
+    .getElementById("history-exercise-filter")
+    .value.trim();
+  await loadHistory(programId, exerciseName);
+}
+
+function cancelEdits(sessionId, evt) {
+  evt.stopPropagation();
+  renderSessions(allSessions);
+}

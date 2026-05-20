@@ -315,14 +315,19 @@ async function loadExercises(dayId) {
   tbody.innerHTML = exercises
     .map(
       (e) => `
-    <tr>
-      <td>${e.name}</td>
-      <td>${e.target_sets}</td>
-      <td>${e.target_reps || "—"}</td>
-      <td>${e.target_weight ? e.target_weight + " lbs" : "—"}</td>
-      <td>${e.pct_1rm ? e.pct_1rm + "%" : "—"}</td>
-      <td>${e.rpe || "—"}</td>
-      <td><button class="btn-danger" onclick="deleteExercise('${e.id}')">✕</button></td>
+    <tr data-ex-id="${e.id}">
+      <td data-field="name">${e.name}</td>
+      <td data-field="target_sets">${e.target_sets}</td>
+      <td data-field="target_reps">${e.target_reps || "—"}</td>
+      <td data-field="target_weight">${e.target_weight != null ? e.target_weight + " lbs" : "—"}</td>
+      <td data-field="pct_1rm">${e.pct_1rm != null ? e.pct_1rm + "%" : "—"}</td>
+      <td data-field="rpe">${e.rpe ?? "—"}</td>
+      <td style="display:flex;gap:0.4rem;align-items:center">
+        <button class="btn-secondary small edit-ex-btn" onclick="editExercise('${e.id}')">Edit</button>
+        <button class="btn-primary small save-ex-btn hidden" onclick="saveExercise('${e.id}')">Save</button>
+        <button class="btn-secondary small cancel-ex-btn hidden" onclick="cancelExerciseEdit('${e.id}')">Cancel</button>
+        <button class="btn-danger delete-ex-btn" onclick="deleteExercise('${e.id}')">✕</button>
+      </td>
     </tr>
   `,
     )
@@ -331,5 +336,77 @@ async function loadExercises(dayId) {
 
 window.deleteExercise = async (id) => {
   await db.from("program_exercises").delete().eq("id", id);
+  await loadExercises(currentDay.id);
+};
+
+window.editExercise = (id) => {
+  const row = document.querySelector(`tr[data-ex-id="${id}"]`);
+
+  const cellConfig = [
+    { field: "name",          type: "text",   attrs: "",                          strip: (v) => v },
+    { field: "target_sets",   type: "number", attrs: 'min="1"',                   strip: (v) => v },
+    { field: "target_reps",   type: "text",   attrs: "",                          strip: (v) => (v === "—" ? "" : v) },
+    { field: "target_weight", type: "number", attrs: 'min="0" step="2.5"',        strip: (v) => v.replace(" lbs", "") === "—" ? "" : v.replace(" lbs", "") },
+    { field: "pct_1rm",       type: "number", attrs: 'min="1" max="100"',         strip: (v) => v.replace("%", "") === "—" ? "" : v.replace("%", "") },
+    { field: "rpe",           type: "number", attrs: 'min="1" max="10" step="0.5"', strip: (v) => (v === "—" ? "" : v) },
+  ];
+
+  cellConfig.forEach(({ field, type, attrs, strip }) => {
+    const cell = row.querySelector(`[data-field="${field}"]`);
+    const val = strip(cell.textContent.trim());
+    const w = field === "name" ? "9rem" : "4.5rem";
+    cell.innerHTML = `<input type="${type}" ${attrs} value="${val}" class="edit-log-input" style="width:${w}">`;
+  });
+
+  row.querySelector(".edit-ex-btn").classList.add("hidden");
+  row.querySelector(".delete-ex-btn").classList.add("hidden");
+  row.querySelector(".save-ex-btn").classList.remove("hidden");
+  row.querySelector(".cancel-ex-btn").classList.remove("hidden");
+};
+
+window.saveExercise = async (id) => {
+  const row = document.querySelector(`tr[data-ex-id="${id}"]`);
+  const saveBtn = row.querySelector(".save-ex-btn");
+  saveBtn.textContent = "Saving…";
+  saveBtn.disabled = true;
+
+  const get = (field) => row.querySelector(`[data-field="${field}"] input`)?.value ?? "";
+
+  const name = get("name").trim();
+  if (!name) {
+    saveBtn.textContent = "Save";
+    saveBtn.disabled = false;
+    return;
+  }
+
+  const setsRaw = get("target_sets");
+  const weightRaw = get("target_weight");
+  const pctRaw = get("pct_1rm");
+  const rpeRaw = get("rpe");
+
+  const { error } = await db
+    .from("program_exercises")
+    .update({
+      name,
+      target_sets: setsRaw !== "" ? parseInt(setsRaw) : null,
+      target_reps: get("target_reps").trim() || null,
+      target_weight: weightRaw !== "" ? parseFloat(weightRaw) : null,
+      pct_1rm: pctRaw !== "" ? parseFloat(pctRaw) : null,
+      rpe: rpeRaw !== "" ? parseFloat(rpeRaw) : null,
+    })
+    .eq("id", id)
+    .eq("user_id", currentUser.id);
+
+  if (error) {
+    saveBtn.textContent = "Save";
+    saveBtn.disabled = false;
+    alert("Error saving — please try again.");
+    return;
+  }
+
+  await loadExercises(currentDay.id);
+};
+
+window.cancelExerciseEdit = async (id) => {
   await loadExercises(currentDay.id);
 };
