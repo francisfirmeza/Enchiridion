@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="author" content="Francis Firmeza" />
+    <title>Bodyweight Log</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../css/style.css" />
+  </head>
+  <body>
+    <nav class="sidebar">
+      <div class="sidebar-logo">ENCHIRIDION</div>
+      <ul class="nav-links">
+        <li><a href="dashboard.html">Dashboard</a></li>
+        <li><a href="programs.html">Programs</a></li>
+        <li><a href="log.html">Log Workout</a></li>
+        <li><a href="history.html">History</a></li>
+        <li><a href="plan.html">Planner</a></li>
+        <li><a href="body.html" class="active">Body</a></li>
+      </ul>
+      <button class="btn-logout" id="logout-btn">Sign Out</button>
+    </nav>
+
+    <main class="main-content">
+      <header class="page-header">
+        <div>
+          <h2 class="page-title">Bodyweight Log</h2>
+          <p class="page-sub">Track your weight over time</p>
+        </div>
+      </header>
+
+      <!-- Log Form -->
+      <section class="card">
+        <p class="card-label">Log Entry</p>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Date</label>
+            <input type="date" id="bw-date" />
+          </div>
+          <div class="form-group">
+            <label>Weight (lbs)</label>
+            <input type="number" id="bw-weight" placeholder="e.g. 175.5" min="50" max="700" step="0.1" />
+          </div>
+          <div class="form-group">
+            <label>Notes (optional)</label>
+            <input type="text" id="bw-notes" placeholder="e.g. After morning run" />
+          </div>
+        </div>
+        <p class="auth-error" id="bw-error"></p>
+        <button class="btn-primary" id="bw-save-btn">Log Weight</button>
+      </section>
+
+      <!-- Stats Row -->
+      <section class="stats-row" id="bw-stats" style="display:none">
+        <div class="stat-card">
+          <span class="stat-num" id="stat-current">—</span>
+          <span class="stat-label">Current (lbs)</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-num" id="stat-change">—</span>
+          <span class="stat-label">30-Day Change</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-num" id="stat-entries">—</span>
+          <span class="stat-label">Total Entries</span>
+        </div>
+      </section>
+
+      <!-- Trend Chart -->
+      <section class="card hidden" id="bw-chart-section">
+        <p class="card-label">Weight Trend</p>
+        <div class="chart-container">
+          <canvas id="bw-chart"></canvas>
+        </div>
+        <p style="font-size:0.75rem;color:var(--text-muted);margin-top:0.75rem">
+          Dashed line shows 7-day moving average
+        </p>
+      </section>
+
+      <!-- Entry Table -->
+      <section class="card hidden" id="bw-table-section">
+        <p class="card-label">Recent Entries</p>
+        <table class="log-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Weight</th>
+              <th>Notes</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="bw-tbody"></tbody>
+        </table>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+    <script src="../js/supabase.js"></script>
+    <script src="../js/body.js"></script>
+  </body>
+</html>
